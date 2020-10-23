@@ -23,9 +23,29 @@ jobs:
             echo "Hello World"
 
 #  build-frontend:
-
-#  build-frontend:
-
+  buildFrontEnd:
+      docker:
+        - image: circleci/node:13.8.0
+      steps:
+        - checkout
+        - run:
+            name: build frontend
+            command: |
+              cd frontend
+              npm i
+              npm run build
+#  build-backend:
+  buildBackEnd:
+      docker:
+        - image: circleci/node:13.8.0
+      steps:
+        - checkout
+        - run:
+            name: bild backend 
+            command: |
+              cd backend
+              npm i
+              npm run build      
 #  test-frontend:
 
 #  est-backend:
@@ -51,4 +71,5 @@ jobs:
 workflows:
   default:
     jobs:
-      - hello-world
+      - buildBackEnd
+      - buildFrontEnd
