@@ -108,18 +108,19 @@ jobs:
 workflows:
   default:
     jobs:
-      - buildBackEnd
       - buildFrontEnd
+      - buildBackEnd
       - testFrontEnd:
           requires:
             - buildFrontEnd
       - testBackEnd:
           requires:
             - buildBackEnd
-      - auditBackEnd:
-          requires:
-            - buildBackEnd       
       - auditFrontEnd:
           requires:
-            - buildFrontEnd
+            - testFrontEnd
+      - auditBackEnd:
+          requires:
+            - testBackEnd       
+      
 
