@@ -66,12 +66,30 @@ jobs:
             npm run test   
       - store_test_results:
           path: backend
-
-#  est-backend:
-
-#  can-frontend:
-
+#  scan-frontend:
+  auditFrontEnd:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: AUDIT frontend
+          command: |
+            cd frontend
+            npm i
+            npm audit --audit-level=critical
 #  scan-backend:
+  auditBackEnd:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: AUDIT backend
+          command: |
+            cd backend
+            npm i
+            npm audit --audit-level=critical
 
 #  deploy-infrastructure:
 
@@ -98,4 +116,10 @@ workflows:
       - testBackEnd:
           requires:
             - buildBackEnd
+      - auditBackEnd:
+          requires:
+            - buildBackEnd       
+      - auditFrontEnd:
+          requires:
+            - buildFrontEnd
 
