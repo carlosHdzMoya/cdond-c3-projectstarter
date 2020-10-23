@@ -39,6 +39,8 @@ jobs:
               npm run build      
 #  test-frontend:
   testFrontEnd:
+    resource_class:
+      large
     docker:
       - image: circleci/node:13.8.0
     steps:
