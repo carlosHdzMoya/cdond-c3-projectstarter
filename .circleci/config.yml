@@ -173,11 +173,29 @@ jobs:
             apk add --update ansible
       - create-env-file
       - run:
-          name: Configure server
+          name: CONFIGURE server
           command: |
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
 #  run-migrations:
+  run-migrations:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout 
+      - run:
+          name: MIGRATIONS
+          command: |
+            cd backend
+            npm i
+            npm run migrations > migrations.txt
+            cat migrations.txt     
+      - run:
+          name: SAVE status to memstash
+          command: |        
+            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID:0:7}"  --request PUT \
+              --data $( grep -c "has been executed successfully" migrations.txt ) \
+              https://api.memstash.io/values/migration_completion
 
 #  deploy-frontend:
 
@@ -209,3 +227,6 @@ workflows:
       - configure-infrastructure:
           requires:
             - deploy-infrastructure
+      - run-migrations:
+          requires:
+            - configure-infrastructure
