@@ -50,7 +50,7 @@ jobs:
             npm i
             npm run test
       - store_test_results:
-          path: test-results
+          path: ~/test-results/frontend
 #  test-backend:
   testBackEnd:
     docker:
@@ -64,7 +64,7 @@ jobs:
             npm i
             npm run test   
       - store_test_results:
-          path: test-results   
+          path: ~/test-results/backend
 
 #  est-backend:
 
