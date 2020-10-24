@@ -259,8 +259,9 @@ workflows:
       # - auditBackEnd:
       #     requires:
       #       - testBackEnd
-      - deploy-infrastructure:
-          requires: [auditFrontEnd,auditBackEnd]
+      - deploy-infrastructure
+      # :
+      #     requires: [auditFrontEnd,auditBackEnd]
       - configure-infrastructure:
           requires:
             - deploy-infrastructure
