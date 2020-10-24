@@ -1,5 +1,5 @@
 ---
-- name: Configure Server
+- name: Deploy
   hosts: all
   user: ubuntu
  
@@ -19,4 +19,4 @@
   gather_facts: true
 
   roles:
-      - configure-server
+      - deploy
