@@ -138,13 +138,6 @@ jobs:
               ARN=$(aws s3 ls | grep udapeople)
               echo "ARN=$ARN"
               curl -H "Content-Type: text/plain" -H "token: 46379a95-9d53-46f2-becb-d0e5c670441f" --request PUT --data "$ARN" https://api.memstash.io/values/arn_${CIRCLE_WORKFLOW_ID}
-      - run:
-          name: Ensure that the cloudfront infrastructure exists
-          command: |
-            aws cloudformation deploy \
-                --template-file .circleci/files/cloudfront.yml \
-                --stack-name "udapeople-cloudfront-${CIRCLE_WORKFLOW_ID}" \
-                --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID}"
       - destroy-environment
 
   configure-infrastructure:
@@ -366,18 +359,18 @@ jobs:
 workflows:
   default:
     jobs:
-      - build-frontend
-      - build-backend
-      - test-frontend:
-          requires: [build-frontend]
-      - test-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [test-frontend]
-      - scan-backend:
-          requires: [test-backend]
-      - deploy-infrastructure:
-          requires: [scan-frontend, scan-backend]
+      # - build-frontend
+      # - build-backend
+      # - test-frontend:
+      #     requires: [build-frontend]
+      # - test-backend:
+      #     requires: [build-backend]
+      # - scan-frontend:
+      #     requires: [test-frontend]
+      # - scan-backend:
+      #     requires: [test-backend]
+      - deploy-infrastructure
+          # requires: [scan-frontend, scan-backend]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
       - run-migrations:
@@ -388,6 +381,6 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-      - cloudfront-update:
-          requires: [smoke-test]
+      # - cloudfront-update:
+      #     requires: [smoke-test]
 #----
