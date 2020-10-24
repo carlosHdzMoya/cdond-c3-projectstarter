@@ -1,25 +1,26 @@
 ---
-# - name: Update apt packages
-#   become: yes
-#   apt:
-#     update_cache: yes
-
-# - name: Upgrade packages
+# - name: "upgrade packages."
 #   become: true
 #   apt:
 #     upgrade: "yes"
+#     state: fixed
 
-- name: Install dependencies
+- name: "install dependencies."
   become: true
   apt:
     name: ["nodejs", "npm"]
     state: latest
     update_cache: yes
 
-- name: Install pm2
+- name: "install pm2"
   become: true
   npm:
     name: pm2
     global: yes
     production: yes
     state: present
+
+- name: Creates directory
+  file:
+    path: ./backend-app
+    state: directory
