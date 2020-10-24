@@ -218,45 +218,44 @@ jobs:
           name: CONFIGURE server
           command: |
             cd .circleci/ansible
-            tar -czvf ../../backend.tar.gz ../../backend
             ansible-playbook -i inventory.txt configure-server.yml
       - destroy-environment:
           workflow_id:
             "${CIRCLE_WORKFLOW_ID:0:7}"
 
 #  run-migrations:
-  # run-migrations:
-  #   docker:
-  #     - image: circleci/node:13.8.0
-  #   steps:
-  #     - checkout
-  #     - run:
-  #         name: MIGRATIONS
-  #         command: |
-  #           cd backend
-  #           npm i
-  #           npm run migrations > migrations.txt
-  #     - run:
-  #         name: Add env file
-  #         command: |
-  #           echo "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}" >> backend/.env
-  #           echo "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}" >> backend/.env
-  #           echo "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}" >> backend/.env
-  #           echo "TYPEORM_HOST=${TYPEORM_HOST}" >> backend/.env
-  #           echo "TYPEORM_PORT=${TYPEORM_PORT}" >> backend/.env
-  #           echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> backend/.env
-  #           echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> backend/.env
-  #           echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> backend/.env
-  #           echo "ENVIRONMENT=${ENVIRONMENT}" >> backend/.env
-  #     - run:
-  #         name: SAVE status to memstash
-  #         command: |        
-  #           curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID:0:7}"  --request PUT \
-  #             --data $( grep -c "has been executed successfully" migrations.txt ) \
-  #             https://api.memstash.io/values/migration_completion
-  #     - destroy-environment:
-  #         workflow_id:
-  #           "${CIRCLE_WORKFLOW_ID:0:7}"
+  run-migrations:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: MIGRATIONS
+          command: |
+            cd backend
+            npm i
+            npm run migrations > migrations.txt
+      - run:
+          name: Add env file
+          command: |
+            echo "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}" >> backend/.env
+            echo "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}" >> backend/.env
+            echo "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}" >> backend/.env
+            echo "TYPEORM_HOST=${TYPEORM_HOST}" >> backend/.env
+            echo "TYPEORM_PORT=${TYPEORM_PORT}" >> backend/.env
+            echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> backend/.env
+            echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> backend/.env
+            echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> backend/.env
+            echo "ENVIRONMENT=${ENVIRONMENT}" >> backend/.env
+      - run:
+          name: SAVE status to memstash
+          command: |        
+            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID:0:7}"  --request PUT \
+              --data $( grep -c "has been executed successfully" migrations.txt ) \
+              https://api.memstash.io/values/migration_completion
+      - destroy-environment:
+          workflow_id:
+            "${CIRCLE_WORKFLOW_ID:0:7}"
 
 #  deploy-frontend:
   deploy-frontend:
@@ -297,39 +296,39 @@ jobs:
             "${CIRCLE_WORKFLOW_ID:0:7}"
 
 # #  deploy-backend:  
-#   deploy-backend:
-#     docker:
-#       - image: python:3.7-alpine3.11
-#     steps:
-#       - checkout
-#       - add_ssh_keys:
-#           fingerprints: ["80:09:79:8b:a0:5e:b4:ea:f0:73:ec:ee:23:03:2f:de"]
-#       - attach_workspace:
-#           at: ~/
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             apk add --update ansible
-#       - run:
-#           name: Add env file
-#           command: |
-#             echo "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}" >> backend/.env
-#             echo "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}" >> backend/.env
-#             echo "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}" >> backend/.env
-#             echo "TYPEORM_HOST=${TYPEORM_HOST}" >> backend/.env
-#             echo "TYPEORM_PORT=${TYPEORM_PORT}" >> backend/.env
-#             echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> backend/.env
-#             echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> backend/.env
-#             echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> backend/.env
-#             echo "ENVIRONMENT=${ENVIRONMENT}" >> backend/.env
-#       - run:
-#           name: Configure server
-#           command: |
-#             cd .circleci/ansible
-#             ansible-playbook -i inventory.txt deploy.yml
-#       - destroy-environment:
-#           workflow_id:
-#             "${CIRCLE_WORKFLOW_ID:0:7}"
+  deploy-backend:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints: ["80:09:79:8b:a0:5e:b4:ea:f0:73:ec:ee:23:03:2f:de"]
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible
+      - run:
+          name: Add env file
+          command: |
+            echo "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}" >> backend/.env
+            echo "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}" >> backend/.env
+            echo "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}" >> backend/.env
+            echo "TYPEORM_HOST=${TYPEORM_HOST}" >> backend/.env
+            echo "TYPEORM_PORT=${TYPEORM_PORT}" >> backend/.env
+            echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> backend/.env
+            echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> backend/.env
+            echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> backend/.env
+            echo "ENVIRONMENT=${ENVIRONMENT}" >> backend/.env
+      - run:
+          name: Configure server
+          command: |
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt deploy.yml
+      - destroy-environment:
+          workflow_id:
+            "${CIRCLE_WORKFLOW_ID:0:7}"
 
 #  smoke-test:
   smoke-test:
@@ -400,12 +399,12 @@ workflows:
           # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
+      - run-migrations:
+          requires: [configure-infrastructure]
       - deploy-frontend:
           requires: [configure-infrastructure]
-      # - deploy-backend:
-      #     requires: [configure-infrastructure]
+      - deploy-backend:
+          requires: [configure-infrastructure]
       - smoke-test:
           requires: [configure-infrastructure]
       # - cloudfront-update:

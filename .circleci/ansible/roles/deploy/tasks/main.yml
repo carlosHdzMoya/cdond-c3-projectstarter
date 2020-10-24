@@ -1,35 +1,22 @@
 ---
-- name: "Copy backend files to remote server"
-  poll: 60
-  copy:
-    dest: /home/ubuntu/
-    src: /root/project/backend.tar.gz
 
-- name: "Decompress backend source code"
-  poll: 60
+- name: Copy files from circleci to backend server
+  copy:
+    src: /root/project/backend
+    dest: /home/ubuntu/
+
+- name: Stop PM2
+  ignore_errors: yes
   shell: |
-    cd /home/ubuntu
-    mkdir backend
-    tar -xzvf backend.tar.gz -C .
-- name: "Build npm packages"
-  poll: 60
+    pm2 stop backend
+    pm2 delete backend
+- name: Build node service
   shell: |
     cd /home/ubuntu/backend
-    sudo npm cache clean -f
-    sudo npm install -g n
-    sudo n stable
-    PATH="$PATH"
     npm i
     npm run build
-- name: "run migrations and save status to memstash.io"
-  poll: 60
+      
+- name: Start pm2 service
   shell: |
     cd /home/ubuntu/backend
-    npm run migrations > migrations.txt
-    cat migrations.txt
-    curl -H "Content-Type: text/plain" -H "token: 43f5331f-b3fe-41b4-8f33-1ef7fd665b51" --request PUT --data $( grep -c "No migrations are pending" migrations.txt ) https://api.memstash.io/values/migration_status
-- name: "use pm2 to run the node server"
-  poll: 60
-  shell: |
-    cd /home/ubuntu/backend
-    pm2 start npm -- run "start:dev"
+    pm2 start npm --name backend -- start
