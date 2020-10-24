@@ -31,9 +31,7 @@ commands:
             echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> backend/.env
             echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> backend/.env  
 
-
 jobs:
-
 #  build-frontend:
   buildFrontEnd:
     docker:
@@ -182,7 +180,8 @@ jobs:
     docker:
       - image: circleci/node:13.8.0
     steps:
-      - checkout 
+      - checkout
+      - create-env-file
       - run:
           name: MIGRATIONS
           command: |
