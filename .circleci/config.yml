@@ -1,35 +1,38 @@
 version: 2.1
 
 commands:
-  # destroy-environment:
-  #   description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
-  #   parameters:
-  #     # Add parameter here   
-  #   steps:
-  #     - run:
-  #         name: Destroy environments
-  #         when: on_fail
-  #         command: |
-  #           # Your code here
-  #           exit 1
-  # revert-migrations:
-  #   description: Revert the last migration if successfully run in the current workflow.
-  #   parameters:
-  #     # Add parameter here     
-  #   steps:
-  #     - run:
-  #         name: Revert migrations
-  #         # Add when this will run
-  #         command: |
-  #           # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-  #           SUCCESS = 1
-  #           if(( $SUCCESS==1 )); 
-  #           then
-  #           #  cd ~/project/backend
-  #           #  npm install
-  #           #  Add revert code here. You can find this in the Getting Started section.
-  #             exit 1
-  #           fi
+  destroy-environment:
+    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+    parameters:
+      workflow_id:
+        type: string
+    steps:
+      - run:
+          name: Destroy environments
+          when: on_fail
+          command: |
+            aws s3 rm s3://udapeople-<< parameters.workflow_id >> --recursive
+            aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.workflow_id >>
+            aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.workflow_id >>
+  
+  revert-migrations:
+    description: Revert the last migration if successfully run in the current workflow.
+    parameters:
+      event:
+        type: string  
+    steps:
+      - run:
+          name: Revert migrations
+          when: on_fail
+          command: |
+            # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
+            SUCCESS = 1
+            if(( $SUCCESS==1 )); 
+            then
+              cd backend
+              npm i
+              npm run migrations:revert
+            fi
 
 jobs:
 #  build-frontend:
@@ -181,7 +184,9 @@ jobs:
             root: ~/
             paths:
                 - "project/.circleci/ansible/inventory.txt"
-      # Here's where you will add some code to rollback on failure
+      - destroy-environment:
+          workflow_id:
+            "${CIRCLE_WORKFLOW_ID:0:7}"
 
 #  configure-infrastructure:
   configure-infrastructure:
@@ -213,40 +218,45 @@ jobs:
           name: CONFIGURE server
           command: |
             cd .circleci/ansible
+            tar -czvf ../../backend.tar.gz ../../backend
             ansible-playbook -i inventory.txt configure-server.yml
-      # Here's where you will add some code to rollback on failure
+      - destroy-environment:
+          workflow_id:
+            "${CIRCLE_WORKFLOW_ID:0:7}"
 
 #  run-migrations:
-  run-migrations:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - run:
-          name: MIGRATIONS
-          command: |
-            cd backend
-            npm i
-            npm run migrations > migrations.txt
-      - run:
-          name: Add env file
-          command: |
-            echo "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}" >> backend/.env
-            echo "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}" >> backend/.env
-            echo "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}" >> backend/.env
-            echo "TYPEORM_HOST=${TYPEORM_HOST}" >> backend/.env
-            echo "TYPEORM_PORT=${TYPEORM_PORT}" >> backend/.env
-            echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> backend/.env
-            echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> backend/.env
-            echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> backend/.env
-            echo "ENVIRONMENT=${ENVIRONMENT}" >> backend/.env
-      - run:
-          name: SAVE status to memstash
-          command: |        
-            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID:0:7}"  --request PUT \
-              --data $( grep -c "has been executed successfully" migrations.txt ) \
-              https://api.memstash.io/values/migration_completion
-      # Here's where you will add some code to rollback on failure
+  # run-migrations:
+  #   docker:
+  #     - image: circleci/node:13.8.0
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         name: MIGRATIONS
+  #         command: |
+  #           cd backend
+  #           npm i
+  #           npm run migrations > migrations.txt
+  #     - run:
+  #         name: Add env file
+  #         command: |
+  #           echo "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}" >> backend/.env
+  #           echo "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}" >> backend/.env
+  #           echo "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}" >> backend/.env
+  #           echo "TYPEORM_HOST=${TYPEORM_HOST}" >> backend/.env
+  #           echo "TYPEORM_PORT=${TYPEORM_PORT}" >> backend/.env
+  #           echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> backend/.env
+  #           echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> backend/.env
+  #           echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> backend/.env
+  #           echo "ENVIRONMENT=${ENVIRONMENT}" >> backend/.env
+  #     - run:
+  #         name: SAVE status to memstash
+  #         command: |        
+  #           curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID:0:7}"  --request PUT \
+  #             --data $( grep -c "has been executed successfully" migrations.txt ) \
+  #             https://api.memstash.io/values/migration_completion
+  #     - destroy-environment:
+  #         workflow_id:
+  #           "${CIRCLE_WORKFLOW_ID:0:7}"
 
 #  deploy-frontend:
   deploy-frontend:
@@ -282,40 +292,44 @@ jobs:
           name: COPY BUILD frontend to the S3 bucket
           command: |
             aws s3 cp ./frontend/dist s3://udapeople-"${CIRCLE_WORKFLOW_ID:0:7}" --recursive
-    # Here's where you will add some code to rollback on failure
+      - destroy-environment:
+          workflow_id:
+            "${CIRCLE_WORKFLOW_ID:0:7}"
 
-#  deploy-backend:  
-  deploy-backend:
-    docker:
-      - image: python:3.7-alpine3.11
-    steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints: ["80:09:79:8b:a0:5e:b4:ea:f0:73:ec:ee:23:03:2f:de"]
-      - attach_workspace:
-          at: ~/
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update ansible
-      - run:
-          name: Add env file
-          command: |
-            echo "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}" >> backend/.env
-            echo "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}" >> backend/.env
-            echo "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}" >> backend/.env
-            echo "TYPEORM_HOST=${TYPEORM_HOST}" >> backend/.env
-            echo "TYPEORM_PORT=${TYPEORM_PORT}" >> backend/.env
-            echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> backend/.env
-            echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> backend/.env
-            echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> backend/.env
-            echo "ENVIRONMENT=${ENVIRONMENT}" >> backend/.env
-      - run:
-          name: Configure server
-          command: |
-            cd .circleci/ansible
-            ansible-playbook -i inventory.txt deploy.yml
-    # Here's where you will add some code to rollback on failure
+# #  deploy-backend:  
+#   deploy-backend:
+#     docker:
+#       - image: python:3.7-alpine3.11
+#     steps:
+#       - checkout
+#       - add_ssh_keys:
+#           fingerprints: ["80:09:79:8b:a0:5e:b4:ea:f0:73:ec:ee:23:03:2f:de"]
+#       - attach_workspace:
+#           at: ~/
+#       - run:
+#           name: Install dependencies
+#           command: |
+#             apk add --update ansible
+#       - run:
+#           name: Add env file
+#           command: |
+#             echo "TYPEORM_MIGRATIONS=${TYPEORM_MIGRATIONS}" >> backend/.env
+#             echo "TYPEORM_ENTITIES=${TYPEORM_ENTITIES}" >> backend/.env
+#             echo "TYPEORM_CONNECTION=${TYPEORM_CONNECTION}" >> backend/.env
+#             echo "TYPEORM_HOST=${TYPEORM_HOST}" >> backend/.env
+#             echo "TYPEORM_PORT=${TYPEORM_PORT}" >> backend/.env
+#             echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> backend/.env
+#             echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> backend/.env
+#             echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> backend/.env
+#             echo "ENVIRONMENT=${ENVIRONMENT}" >> backend/.env
+#       - run:
+#           name: Configure server
+#           command: |
+#             cd .circleci/ansible
+#             ansible-playbook -i inventory.txt deploy.yml
+#       - destroy-environment:
+#           workflow_id:
+#             "${CIRCLE_WORKFLOW_ID:0:7}"
 
 #  smoke-test:
   smoke-test:
@@ -349,6 +363,9 @@ jobs:
             else
               exit 1
             fi
+      - destroy-environment:
+          workflow_id:
+            "${CIRCLE_WORKFLOW_ID:0:7}"
 
 #  cloudfront-update:
   # cloudfront-update:
@@ -383,12 +400,12 @@ workflows:
           # requires: [test-frontend, test-backend, scan-frontend, scan-backend]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      - run-migrations:
-          requires: [configure-infrastructure]
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
       - deploy-frontend:
           requires: [configure-infrastructure]
-      - deploy-backend:
-          requires: [configure-infrastructure]
+      # - deploy-backend:
+      #     requires: [configure-infrastructure]
       - smoke-test:
           requires: [configure-infrastructure]
       # - cloudfront-update:
