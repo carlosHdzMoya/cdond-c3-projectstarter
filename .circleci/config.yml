@@ -29,7 +29,8 @@ commands:
             echo "TYPEORM_PORT=${TYPEORM_PORT}" >> backend/.env
             echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> backend/.env
             echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> backend/.env
-            echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> backend/.env  
+            echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> backend/.env
+            cat backend/.env
 
 jobs:
 #  build-frontend:
@@ -186,9 +187,7 @@ jobs:
           name: MIGRATIONS
           command: |
             cd backend
-            npm i
             npm run migrations > migrations.txt
-            cat migrations.txt     
       - run:
           name: SAVE status to memstash
           command: |        
@@ -199,9 +198,16 @@ jobs:
 #  deploy-frontend:
   deploy-frontend:
     docker:
-      - image: amazon/aws-cli
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --no-cache nodejs
+            apk add --no-cache npm
+            apk add --no-cache bash
+            pip install awscli
       - run:
           name: ADD API_URL to env file
           command: |
@@ -232,6 +238,10 @@ jobs:
           fingerprints: ["80:09:79:8b:a0:5e:b4:ea:f0:73:ec:ee:23:03:2f:de"]
       - attach_workspace:
           at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible
       - create-env-file
       - run:
           name: Configure server
