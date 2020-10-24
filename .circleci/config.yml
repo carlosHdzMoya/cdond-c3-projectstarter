@@ -184,9 +184,9 @@ jobs:
             root: ~/
             paths:
                 - "project/.circleci/ansible/inventory.txt"
-      - destroy-environment:
-          workflow_id:
-            "${CIRCLE_WORKFLOW_ID:0:7}"
+      # - destroy-environment:
+      #     workflow_id:
+      #       "${CIRCLE_WORKFLOW_ID:0:7}"
 
 #  configure-infrastructure:
   configure-infrastructure:
@@ -219,9 +219,9 @@ jobs:
           command: |
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
-      - destroy-environment:
-          workflow_id:
-            "${CIRCLE_WORKFLOW_ID:0:7}"
+      # - destroy-environment:
+      #     workflow_id:
+      #       "${CIRCLE_WORKFLOW_ID:0:7}"
 
 #  run-migrations:
   run-migrations:
@@ -253,9 +253,9 @@ jobs:
             curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID:0:7}"  --request PUT \
               --data $( grep -c "has been executed successfully" migrations.txt ) \
               https://api.memstash.io/values/migration_completion
-      - destroy-environment:
-          workflow_id:
-            "${CIRCLE_WORKFLOW_ID:0:7}"
+      # - destroy-environment:
+      #     workflow_id:
+      #       "${CIRCLE_WORKFLOW_ID:0:7}"
 
 #  deploy-frontend:
   deploy-frontend:
@@ -291,9 +291,9 @@ jobs:
           name: COPY BUILD frontend to the S3 bucket
           command: |
             aws s3 cp ./frontend/dist s3://udapeople-"${CIRCLE_WORKFLOW_ID:0:7}" --recursive
-      - destroy-environment:
-          workflow_id:
-            "${CIRCLE_WORKFLOW_ID:0:7}"
+      # - destroy-environment:
+      #     workflow_id:
+      #       "${CIRCLE_WORKFLOW_ID:0:7}"
 
 # #  deploy-backend:  
   deploy-backend:
@@ -326,9 +326,9 @@ jobs:
           command: |
             cd .circleci/ansible
             ansible-playbook -i inventory.txt deploy.yml
-      - destroy-environment:
-          workflow_id:
-            "${CIRCLE_WORKFLOW_ID:0:7}"
+      # - destroy-environment:
+      #     workflow_id:
+      #       "${CIRCLE_WORKFLOW_ID:0:7}"
 
 #  smoke-test:
   smoke-test:
@@ -362,9 +362,9 @@ jobs:
             else
               exit 1
             fi
-      - destroy-environment:
-          workflow_id:
-            "${CIRCLE_WORKFLOW_ID:0:7}"
+      # - destroy-environment:
+      #     workflow_id:
+      #       "${CIRCLE_WORKFLOW_ID:0:7}"
 
 #  cloudfront-update:
   # cloudfront-update:
