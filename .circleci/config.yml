@@ -256,7 +256,6 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
-      - write-envvars-file 
       - run:
           name: Smoke test backend
           command: |
@@ -264,8 +263,9 @@ jobs:
               --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --query 'Reservations[*].Instances[*].PublicIpAddress' \
               --output text)     
-            EC2_URL="https://${BACKEND_IP}:3030/api/status"
-            if curl -s ${EC2_URL} | grep "ok"
+            API_URL="https://${BACKEND_IP}:3030/api/status"
+            curl ${API_URL}
+            if curl -s ${API_URL} | grep "ok"
             then
               exit 0
             else
@@ -274,8 +274,9 @@ jobs:
       - run:
           name: Smoke test frontend
           command: |
-            APP_URL="https://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3.amazonaws.com//#/employee"
-            if curl -s ${APP_URL} | grep "Welcome"
+            S3_URL="https://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3.amazonaws.com//#/employee"
+            curl ${API_URL}
+            if curl -s ${S3_URL} | grep "Welcome"
             then
               exit 0
             else
