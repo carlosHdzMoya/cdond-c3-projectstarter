@@ -33,7 +33,7 @@ commands:
 
 jobs:
 #  build-frontend:
-  buildFrontEnd:
+  build-frontend:
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -51,7 +51,7 @@ jobs:
           key: frontend-build
 
 #  build-backend:
-  buildBackEnd:
+  build-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -69,7 +69,7 @@ jobs:
           key: backend-build
 
 #  test-frontend:
-  testFrontEnd:
+  test-frontend:
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -88,7 +88,7 @@ jobs:
           key: frontend-build
 
 #  test-backend:
-  testBackEnd:
+  test-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -108,7 +108,7 @@ jobs:
           path: backend
 
 #  scan-frontend:
-  auditFrontEnd:
+  scan-frontend:
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -126,7 +126,7 @@ jobs:
           key: frontend-build
 
 #  scan-backend:
-  auditBackEnd:
+  scan-backend:
     docker:
       - image: circleci/node:13.8.0
     steps:
