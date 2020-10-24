@@ -187,6 +187,7 @@ jobs:
           name: MIGRATIONS
           command: |
             cd backend
+            npm i
             npm run migrations > migrations.txt
       - run:
           name: SAVE status to memstash
@@ -213,7 +214,8 @@ jobs:
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
               --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --query 'Reservations[*].Instances[*].PublicIpAddress')
+              --query 'Reservations[*].Instances[*].PublicIpAddress' \
+              --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL=$API_URL" >> frontend/.env
             echo "${API_URL}"
@@ -227,7 +229,7 @@ jobs:
       - run: 
           name: COPY BUILD frontend to the S3 bucket
           command: |
-            aws s3 cp ./frontend/dist s3://udapeople-frontend-"${CIRCLE_WORKFLOW_ID:0:7}" --recursive
+            aws s3 cp ./frontend/dist s3://udapeople-"${CIRCLE_WORKFLOW_ID:0:7}" --recursive
 #  deploy-backend:  
   deploy-backend:
     docker:

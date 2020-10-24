@@ -1,13 +1,13 @@
 ---
-- name: Update apt packages
-  become: yes
-  apt:
-    update_cache: yes
+# - name: Update apt packages
+#   become: yes
+#   apt:
+#     update_cache: yes
 
-- name: Upgrade packages
-  become: true
-  apt:
-    upgrade: "yes"
+# - name: Upgrade packages
+#   become: true
+#   apt:
+#     upgrade: "yes"
 
 - name: Install dependencies
   become: true
