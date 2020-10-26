@@ -11,8 +11,6 @@ commands:
             aws s3 rm "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
             aws cloudformation delete-stack --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
             aws cloudformation delete-stack --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
-            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --request PUT --data "" https://api.memstash.io/values/url_${CIRCLE_WORKFLOW_ID:0:7}
-            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --request PUT --data "" https://api.memstash.io/values/arn_${CIRCLE_WORKFLOW_ID:0:7}
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
@@ -233,12 +231,13 @@ jobs:
           command: |
             cd backend
             npm i
-            export MIGRATED=$(npm run migrations)
-            echo ${MIGRATED}
+            npm run migrations > migrations.txt
       - run:
           name: Log to memstash
           command: |
-            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --request PUT --data "true" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" \
+              --data $(grep -E "has been executed successfully"|"No migrations are pending" migrations.txt ) \
+              https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
       - destroy-environment
 
 #  deploy-frontend:
@@ -354,8 +353,8 @@ jobs:
       - run:
           name: Smoke test frontend
           command: |
-            pwd
             APP_URL="http://udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employee"
+            echo ${APP_URL}
             if curl -s ${APP_URL} | grep "Welcome"
             then
               exit 0
