@@ -376,25 +376,30 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update nodejs npm curl
+            apk add --update nodejs npm curl bash
             pip install awscli
       - run:
-          name: DEPLOY cloudfront
+          name: Update cloudfront distribution
           command: |
-            export OldWorkflowID=$(aws cloudformation \
-              list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-              --no-paginate --output text)
-            export STACKS=$(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
-              --stack-status-filter CREATE_COMPLETE --no-paginate --output text)
-            echo Old Workflow Id: "$OldWorkflowID"
-            echo "$STACKS[*]"
-            if echo "$STACKS[*]" | grep -Eq "$OldWorkflowID" 
+            set TERM=xterm
+            export OLD_WORK_FLOW_ID=$(aws cloudformation list-exports --query "Exports[?Name=='WorkflowID'].Value" --no-paginate --output text)
+            echo OLD_WORK_FLOW_ID: "${OLD_WORK_FLOW_ID}"
+            
+            if [ -n "${OLD_WORK_FLOW_ID}" ]
             then
-              echo "${OldWorkflowID}"
-              echo "This is the bucket: "
-              echo udapeople-${OldWorkflowID}
-              echo "This is the bucket url: "
-              echo "s3://udapeople-${OldWorkflowID}"
+              echo "Update existing CloudFront stack"
+              aws cloudformation update-stack  \
+                --stack-name udapeople-cloudfront \
+                --template-body file://./.circleci/files/cloudfront.yml \
+                --parameters ParameterKey=WorkflowID,ParameterValue=${CIRCLE_WORKFLOW_ID:0:7} \
+                --tags 'Key=project,Value=udapeople'
+            else              
+              echo "Create CloudFront stack"
+              aws cloudformation create-stack  \
+                --stack-name udapeople-cloudfront \
+                --template-body file://./.circleci/files/cloudfront.yml \
+                --parameters ParameterKey=WorkflowID,ParameterValue=${CIRCLE_WORKFLOW_ID:0:7} \
+                --tags 'Key=project,Value=udapeople'            
             fi
 
 workflows:
@@ -422,7 +427,7 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
+      - cloudfront-update:
+          requires: [smoke-test]
       # - cleanup:
       #     requires: [cloudfront-update]
