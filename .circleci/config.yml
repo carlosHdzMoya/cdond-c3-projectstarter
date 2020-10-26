@@ -19,7 +19,7 @@ commands:
           name: Revert migrations
           when: on_fail
           command: |
-              cd ~/project/backend
+              cd backend
               npm i
               npm run migration:revert
 
@@ -345,8 +345,9 @@ jobs:
       - run:
           name: Smoke test frontend
           command: |
-            pwd
             APP_URL="http://udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employee"
+            echo ${APP_URL}
+            curl ${APP_URL}
             if curl -s ${APP_URL} | grep "Welcome"
             then
               exit 0
