@@ -345,7 +345,7 @@ jobs:
       - run:
           name: Smoke test frontend
           command: |
-            APP_URL="http://udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employee"
+            APP_URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3.amazonaws.com/#/employee"
             echo ${APP_URL}
             curl ${APP_URL}
             if curl -s ${APP_URL} | grep "Welcome"
