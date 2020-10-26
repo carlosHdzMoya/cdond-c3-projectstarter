@@ -14,9 +14,6 @@ commands:
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
-    parameters:
-      event:
-        type: string  
     steps:
       - run:
           name: Revert migrations
@@ -26,7 +23,7 @@ commands:
             if (( $SUCCESS == 1 ));
             then
               cd ~/project/backend
-              npm install
+              npm i
               npm run migration:revert
             fi
 
@@ -239,7 +236,7 @@ jobs:
       - run:
           name: Log to memstash
           command: |
-            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --data $(grep -E "has been executed successfully"|"No migrations are pending" migrations.txt ) https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7})
+            curl -H "Content-Type: text/plain" -H "token: ${CIRCLE_WORKFLOW_ID}" --data $(grep -E "has been executed successfully"|"No migrations are pending" migrations.txt ) https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
       - destroy-environment
 
 #  deploy-frontend:
@@ -307,6 +304,7 @@ jobs:
             echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ".env"
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
+            
             npm i
             npm run build
             echo "List of contents before deleting: "
