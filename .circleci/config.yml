@@ -348,7 +348,7 @@ jobs:
             APP_URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3.amazonaws.com/index.html#/employees"
             echo ${APP_URL}
             curl ${APP_URL}
-            if curl -s ${APP_URL} | grep "Employees"
+            if curl -s ${APP_URL} | grep "Welcome"
             then
               exit 0
             else
