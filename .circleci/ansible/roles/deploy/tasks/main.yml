@@ -1,0 +1,41 @@
+---
+# - name: "upgrade packages."
+#   become: true
+#   apt:
+#     upgrade: "yes"
+
+- name: "install dependencies."
+  become: true
+  apt:
+    name: ["nodejs", "npm", "tar"]
+    state: latest
+    update_cache: yes
+
+- name: "copy backend folder"
+  become: true
+  copy:
+    src: /root/project/backend
+    dest: /home/ubuntu
+
+# - name: Delete old PM2 process
+#   become: true
+#   ignore_errors: yes
+#   shell: |
+#     pm2 stop app
+#     pm2 delete app
+
+- name: Install Node Dependencies
+  shell: |
+    cd /home/ubuntu/backend
+    npm install
+
+- name: Building Node service
+  shell: |
+    cd /home/ubuntu/backend
+    npm run build
+    npm run prestart:prod
+
+- name: Start PM2
+  shell: |
+    cd /home/ubuntu/backend
+    pm2 start npm --name app -- start
