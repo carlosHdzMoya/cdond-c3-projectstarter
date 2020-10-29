@@ -259,14 +259,14 @@ jobs:
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             echo "API_URL=$API_URL" > frontend/.env
-            cat frontend/.env
       - run:
           name: BUILD frontend
           command: |
             npm install webpack-dev-server -g
             cd frontend
-            npm i
+            npm install
             npm run build
+            npm audit fix --audit-level=critical --force
       - run: 
           name: Copy built frontend files to the S3 bucket
           command: |
