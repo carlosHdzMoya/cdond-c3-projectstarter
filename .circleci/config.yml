@@ -258,7 +258,7 @@ jobs:
               --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
-            echo "${API_URL}" > frontend/.env
+            echo "API_URL=$API_URL" > frontend/.env
       - run:
           name: BUILD frontend
           command: |
@@ -305,6 +305,7 @@ jobs:
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
             npm i
+            npm audit fix --audit-level=critical --force
             npm run build
             echo "List of contents before deleting: "
             ls -a
