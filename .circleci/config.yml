@@ -25,7 +25,6 @@ commands:
               then
                 cd ~/project/backend
                 npm i
-                npm audit fix --audit-level=critical --force
                 npm run migration:revert
               fi
 
@@ -228,7 +227,6 @@ jobs:
           command: |
             cd backend
             npm i
-            npm audit fix --audit-level=critical --force
             npm run migrations = > migrations.txt
             echo ${MIGRATED}
       - run:
@@ -268,7 +266,6 @@ jobs:
             npm install webpack-dev-server -g
             cd frontend
             npm i
-            npm audit fix --audit-level=critical --force
             npm run build
       - run: 
           name: Copy built frontend files to the S3 bucket
@@ -308,7 +305,6 @@ jobs:
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
             npm i
-            npm audit fix --audit-level=critical --force
             npm run build
             echo "List of contents before deleting: "
             ls -a
